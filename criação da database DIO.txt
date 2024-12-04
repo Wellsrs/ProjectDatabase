@@ -1,0 +1,117 @@
+create database ecommerce;
+
+use ecommerce;
+
+-- criar tabela cliente
+create table clients(
+         idClient int auto_increment primary key,
+         Fname varchar(10)
+         Minit char(3), -- nome do meio
+         Lname varchar(20),
+         CPF char(11) not null,
+         Adress varchar(30),
+         constraint unique_cpf_client unique (CPF)
+);
+
+-- criar tabela produto
+create table product(
+         idProduct int auto_increment primary key,
+         Pname varchar(10) not null,
+         classification_kids bool,
+         category enum('Eletrônico','Vestimenta','Brinquedos','Alimentos','Bebidas') not null,
+         Avaliação float default 0,
+         size varchar(10), -- dimensão do produto
+);
+
+-- criar tabela pagamentos
+create table payments (
+    idpaymentClient INT NOT NULL,
+    idPayment INT AUTO_INCREMENT PRIMARY KEY,
+    typePayment ENUM('Boleto', 'Cartão', 'Dois cartões', 'Pix') NOT NULL,
+    limitAvailable FLOAT NOT NULL,
+    paymentDate DATE NOT NULL,
+    paymentStatus ENUM('Pendente', 'Pago', 'Cancelado') DEFAULT 'Pendente',
+    FOREIGN KEY (idpaymentClient) REFERENCES clients(idClient) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- criar tabela pedidos         
+create table orders(
+         idOrder int auto_increment primary key,
+         idOrderClient int,
+         orderStatus enum('Cancelado','Confirmado','Em andamento') default 'Em processamento',
+         orderDescripton varchar(255),
+         sendValue float default 0,
+         idOrderPayment int,
+         constraint fk_orders_client foreing key (idOrderClient) references clients(idClient),
+         constraint fk_order_payment foreing key (idOrderPayment) references payments(idPayment)
+);
+
+-- criar tabela estoque
+create table productStorage(
+         idProdStorage int auto_increment primary key,
+         storageQuantity int default 0,
+         storageLocation varchar(255),
+         idProduct int,
+         constraint fk_orders_products foreing key (idProduct) references products(idProduct)
+);
+
+-- criar tabela fornecedor
+create table supplier(
+         idSupplier int auto_increment primary key,
+         socialName varchar(255) not null,
+         CNPJ char(15) not null,
+         contact char(11) not null,
+         adressSupplier varchar(30),
+         constraint unique_cnpj_Supplier unique (CNPJ)
+);
+
+-- criar tabela vendedor
+create table seller(
+         idSeller int auto_increment primary key,
+         socialName varchar(255) not null,
+         abstName varchar(255),
+         CNPJ char(15),
+         CPF char (9),
+         location varchar(255),
+         contact char(11) not null,
+         adressSupplier varchar(30),
+         constraint unique_cnpj_Seller unique (CNPJ),
+         constraint unique_cpf_Seller unique (CPF)
+);
+
+create tableproductSeller(
+         idPseller int  primary key,
+         productId int primary key,
+         prodQuantity int default 0,
+         primary key(idPseller,productId),
+         constraint fk_productSe_sellet foreing key (idPseller) refences seller(idSeller),
+         constraint fk_productSe_product foreing key (productId) refences product(idProduct)
+);
+
+create table productOrder(
+         idPOproduct int,
+         idPOorder int,
+         poQuantity int default 1,
+         poStatus enum('Disponível','Sem estoque') default 'Disponível',
+         primary key (idPOproduct, idPOorder),
+         constraint fk_productorder_seller foreing key (idPOproduct) references product(idProduct),
+         constraint fk_productorder_product foreing key (idPOorder) references orders(idOrder)
+);
+
+create table storageLocation(
+         idLproduct int,
+         idLstorage int,
+         location varchar(255) not null,
+         primary key (idLproduct, idLstorage),
+         constraint fk_storage_location_seller foreing key (idLproduct) references product(idProduct),
+         constraint fk_product_storage_product foreing key (idLstorage) references productStorage(idProdStorage)
+);
+
+create table productSupplier(
+         idPsSupplier int,
+         idPsProduct int,
+         quantity int not null,
+         primary key(idPsSupplier, idPsProduct),
+         constraint fk_product_supplier_supplier foreing key (idPsSupplier) references supplier(idSupplier),
+         constraint fk_product_supplier_product foreing key (idPsProduct) references product(idProduct)
+);

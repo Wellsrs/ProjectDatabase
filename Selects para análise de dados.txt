@@ -1,0 +1,15 @@
+-- recupera clientes que possuem pedidos
+select concat(Fname,' ',Lname) as Client, idOrder as Request, orderStatus as Status 
+from clientes c, orders o 
+where c.idClient = idOrderClient
+
+-- recuperação de pedido com produto associado
+select * from clientes c
+inner join orders o on c.idClient = o.idOrderClient
+inner join productOrder p on p.idPOorder = o.idOrder
+group by idClient;
+
+-- recuperar quantos pedidos foram realizados pelos clientes.
+select c.idClient, Fname, count(*) as Number_of_orders from clients c 
+inner join orders o on c.idClient = o.idOrderClient 
+group by idClient;
