@@ -1,0 +1,81 @@
+Create database Oficina;
+
+use oficina;
+
+CREATE TABLE Cliente (
+    idCliente INT PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(100) NOT NULL,
+    telefone VARCHAR(15),
+    email VARCHAR(100)
+);
+
+CREATE TABLE Veiculo (
+    idVeiculo INT PRIMARY KEY AUTO_INCREMENT,
+    placa VARCHAR(10) UNIQUE NOT NULL,
+    modelo VARCHAR(100),
+    ano INT,
+    idCliente INT NOT NULL,
+    FOREIGN KEY (idCliente) REFERENCES Cliente(idCliente)
+);
+
+CREATE TABLE OrdemServico (
+    idOS INT PRIMARY KEY AUTO_INCREMENT,
+    dataAbertura DATE NOT NULL,
+    dataEntrega DATE,
+    status ENUM('Aberta', 'Em Andamento', 'Concluída') DEFAULT 'Aberta',
+    idVeiculo INT NOT NULL,
+    FOREIGN KEY (idVeiculo) REFERENCES Veiculo(idVeiculo)
+);
+
+CREATE TABLE Servico (
+    idServico INT PRIMARY KEY AUTO_INCREMENT,
+    descricao VARCHAR(200),
+    valorReferencia FLOAT NOT NULL
+);
+
+CREATE TABLE OrdemServico_Servico (
+    idOS INT NOT NULL,
+    idServico INT NOT NULL,
+    quantidade INT DEFAULT 1,
+    valorTotal FLOAT NOT NULL,
+    PRIMARY KEY (idOS, idServico),
+    FOREIGN KEY (idOS) REFERENCES OrdemServico(idOS),
+    FOREIGN KEY (idServico) REFERENCES Servico(idServico)
+);
+
+CREATE TABLE Peca (
+    idPeca INT PRIMARY KEY AUTO_INCREMENT,
+    descricao VARCHAR(100),
+    valor FLOAT NOT NULL
+);
+
+CREATE TABLE OrdemServico_Peca (
+    idOS INT NOT NULL,
+    idPeca INT NOT NULL,
+    quantidade INT DEFAULT 1,
+    valorTotal FLOAT NOT NULL,
+    PRIMARY KEY (idOS, idPeca),
+    FOREIGN KEY (idOS) REFERENCES OrdemServico(idOS),
+    FOREIGN KEY (idPeca) REFERENCES Peca(idPeca)
+);
+
+CREATE TABLE Equipe (
+    idEquipe INT PRIMARY KEY AUTO_INCREMENT,
+    nomeEquipe VARCHAR(100)
+);
+
+CREATE TABLE Mecanico (
+    idMecanico INT PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(100) NOT NULL,
+    especialidade VARCHAR(100),
+    idEquipe INT NOT NULL,
+    FOREIGN KEY (idEquipe) REFERENCES Equipe(idEquipe)
+);
+
+CREATE TABLE Equipe_OrdemServico (
+    idEquipe INT NOT NULL,
+    idOS INT NOT NULL,
+    PRIMARY KEY (idEquipe, idOS),
+    FOREIGN KEY (idEquipe) REFERENCES Equipe(idEquipe),
+    FOREIGN KEY (idOS) REFERENCES OrdemServico(idOS)
+);

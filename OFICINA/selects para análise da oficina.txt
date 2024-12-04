@@ -1,0 +1,99 @@
+--Listar todos os clientes com seus respectivos veículos
+SELECT 
+    c.idCliente, 
+    c.nome AS NomeCliente, 
+    v.placa AS PlacaVeiculo, 
+    v.modelo AS ModeloVeiculo, 
+    v.ano AS AnoVeiculo
+FROM Cliente c
+LEFT JOIN Veiculo v ON c.idCliente = v.idCliente;
+
+--Consultar todas as ordens de serviço relacionadas a um veículo específico
+SELECT 
+    os.idOS, 
+    os.dataAbertura, 
+    os.dataEntrega, 
+    os.status
+FROM OrdemServico os
+JOIN Veiculo v ON os.idVeiculo = v.idVeiculo
+WHERE v.placa = 'ABC1234';
+
+--Calcular o valor total de cada OS, incluindo o custo de serviços e peças
+SELECT 
+    os.idOS, 
+    SUM(oss.valorTotal) AS TotalServicos, 
+    SUM(osp.valorTotal) AS TotalPecas, 
+    (COALESCE(SUM(oss.valorTotal), 0) + COALESCE(SUM(osp.valorTotal), 0)) AS TotalGeral
+FROM OrdemServico os
+LEFT JOIN OrdemServico_Servico oss ON os.idOS = oss.idOS
+LEFT JOIN OrdemServico_Peca osp ON os.idOS = osp.idOS
+GROUP BY os.idOS;
+
+--Identificar as peças mais utilizadas em ordens de serviço
+SELECT 
+    p.descricao AS Peca,
+    SUM(osp.quantidade) AS TotalUsada
+FROM Peca p
+JOIN OrdemServico_Peca osp ON p.idPeca = osp.idPeca
+GROUP BY p.idPeca
+ORDER BY TotalUsada DESC
+LIMIT 10;
+
+--Descobrir os serviços mais frequentes em ordens de serviço
+SELECT 
+    s.descricao AS Servico, 
+    COUNT(oss.idServico) AS TotalExecutado
+FROM Servico s
+JOIN OrdemServico_Servico oss ON s.idServico = oss.idServico
+GROUP BY s.idServico
+ORDER BY TotalExecutado DESC
+LIMIT 10;
+
+--Contar quantas ordens de serviço estão em cada status
+SELECT 
+    status, 
+    COUNT(*) AS Total
+FROM OrdemServico
+GROUP BY status;
+
+--Listar as equipes com mais ordens de serviço atribuídas
+SELECT 
+    e.nomeEquipe, 
+    COUNT(eos.idOS) AS TotalOrdens
+FROM Equipe e
+JOIN Equipe_OrdemServico eos ON e.idEquipe = eos.idEquipe
+GROUP BY e.idEquipe
+ORDER BY TotalOrdens DESC;
+
+--Calcular o valor médio gasto por cliente considerando serviços e peças
+SELECT 
+    c.nome AS Cliente, 
+    AVG(COALESCE(oss.valorTotal, 0) + COALESCE(osp.valorTotal, 0)) AS GastoMedio
+FROM Cliente c
+JOIN Veiculo v ON c.idCliente = v.idCliente
+JOIN OrdemServico os ON v.idVeiculo = os.idVeiculo
+LEFT JOIN OrdemServico_Servico oss ON os.idOS = oss.idOS
+LEFT JOIN OrdemServico_Peca osp ON os.idOS = osp.idOS
+GROUP BY c.idCliente;
+
+--Listar todas as ordens de serviço abertas em um período específico
+SELECT 
+    os.idOS, 
+    os.dataAbertura, 
+    os.dataEntrega, 
+    v.placa AS Veiculo, 
+    c.nome AS Cliente
+FROM OrdemServico os
+JOIN Veiculo v ON os.idVeiculo = v.idVeiculo
+JOIN Cliente c ON v.idCliente = c.idCliente
+WHERE os.dataAbertura BETWEEN '2024-01-01' AND '2024-12-31';
+
+--Identificar clientes com ordens de serviço ainda não concluídas
+SELECT 
+    c.nome AS Cliente, 
+    COUNT(os.idOS) AS TotalPendentes
+FROM Cliente c
+JOIN Veiculo v ON c.idCliente = v.idCliente
+JOIN OrdemServico os ON v.idVeiculo = os.idVeiculo
+WHERE os.status != 'Concluída'
+GROUP BY c.idCliente;
